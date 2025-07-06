@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wedding Invitation Link Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      .header p {
+        font-size: 1.2em;
+        opacity: 0.9;
+      }
+
+      .main-content {
+        padding: 30px;
+      }
+
+      .controls {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+      }
+
+      .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .control-group label {
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+      }
+
+      .control-group input,
+      .control-group select {
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+      }
+
+      .control-group input:focus,
+      .control-group select:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .input-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+      }
+
+      .input-column {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 15px;
+        border: 1px solid #e9ecef;
+      }
+
+      .input-column h3 {
+        margin-bottom: 20px;
+        color: #333;
+        font-size: 1.3em;
+      }
+
+      .guest-input {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+
+      .guest-input input {
+        flex: 1;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+      }
+
+      .guest-input button {
+        padding: 12px 16px;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s ease;
+      }
+
+      .guest-input button:hover {
+        background: #c82333;
+      }
+
+      .add-guest-btn {
+        width: 100%;
+        padding: 12px;
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: background 0.3s ease;
+      }
+
+      .add-guest-btn:hover {
+        background: #218838;
+      }
+
+      .bulk-input {
+        width: 100%;
+        min-height: 200px;
+        padding: 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: monospace;
+        resize: vertical;
+      }
+
+      .bulk-input:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        padding: 15px 30px;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+      }
+
+      .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+      }
+
+      .btn-warning {
+        background: linear-gradient(135deg, #ffc107, #fd7e14);
+        color: white;
+      }
+
+      .btn-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3);
+      }
+
+      .results {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 25px;
+        border: 1px solid #e9ecef;
+      }
+
+      .results h3 {
+        margin-bottom: 20px;
+        color: #333;
+        font-size: 1.3em;
+      }
+
+      .results-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .results-table th,
+      .results-table td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #e9ecef;
+      }
+
+      .results-table th {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .results-table tr:hover {
+        background: #f8f9fa;
+      }
+
+      .link-cell {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .link-cell a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .link-cell a:hover {
+        text-decoration: underline;
+      }
+
+      .copy-btn {
+        background: #17a2b8;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: background 0.3s ease;
+        margin-right: 5px;
+      }
+
+      .copy-btn:hover {
+        background: #138496;
+      }
+
+      .stats {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 20px;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .stat-item {
+        text-align: center;
+      }
+
+      .stat-number {
+        font-size: 2em;
+        font-weight: bold;
+        color: #667eea;
+      }
+
+      .stat-label {
+        color: #666;
+        font-size: 0.9em;
+        margin-top: 5px;
+      }
+
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background: #28a745;
+        color: white;
+        border-radius: 8px;
+        z-index: 1000;
+        display: none;
+        animation: slideIn 0.3s ease;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .input-section {
+          grid-template-columns: 1fr;
+        }
+
+        .controls {
+          flex-direction: column;
+        }
+
+        .action-buttons {
+          flex-direction: column;
+        }
+
+        .stats {
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        .results-table {
+          font-size: 14px;
+        }
+
+        .results-table th,
+        .results-table td {
+          padding: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>💍 Wedding Invitation Generator</h1>
+        <p>Create personalized wedding invitation links and export to Excel</p>
+      </div>
+
+      <div class="main-content">
+        <div class="controls">
+          <div class="control-group">
+            <label for="baseUrl">Base URL:</label>
+            <input type="text" id="baseUrl" value="https://yourweddingsite.com" placeholder="Enter your wedding site URL" />
+          </div>
+          <div class="control-group">
+            <label for="paramType">Parameter Type:</label>
+            <select id="paramType">
+              <option value="to">?to=</option>
+              <option value="guest">?guest=</option>
+              <option value="name">?name=</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="input-section">
+          <div class="input-column">
+            <h3>📝 Add Guests Individually</h3>
+            <div id="guestInputs">
+              <div class="guest-input">
+                <input type="text" placeholder="Guest Name" class="guest-name" />
+                <button type="button" onclick="removeGuestInput(this)">Remove</button>
+              </div>
+            </div>
+            <button class="add-guest-btn" onclick="addGuestInput()">+ Add Another Guest</button>
+          </div>
+
+          <div class="input-column">
+            <h3>📋 Bulk Add Guests</h3>
+            <p style="margin-bottom: 15px; color: #666; font-size: 14px">Enter one guest name per line:</p>
+            <textarea id="bulkGuests" class="bulk-input" placeholder="John Smith&#10;Sarah Johnson&#10;Keluarga Besar Santoso&#10;Budi Wijaya&#10;Dr. Ahmad Sukarno"></textarea>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn btn-primary" onclick="generateLinks()">🔗 Generate Links</button>
+          <button class="btn btn-success" onclick="exportToExcel()">📊 Export to Excel</button>
+          <button class="btn btn-warning" onclick="clearAll()">🗑️ Clear All</button>
+        </div>
+
+        <div class="results" id="results" style="display: none">
+          <div class="stats">
+            <div class="stat-item">
+              <div class="stat-number" id="totalGuests">0</div>
+              <div class="stat-label">Total Guests</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number" id="totalLinks">0</div>
+              <div class="stat-label">Links Generated</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number" id="readyToExport">0</div>
+              <div class="stat-label">Ready to Export</div>
+            </div>
+          </div>
+
+          <h3>🎉 Generated Invitation Links</h3>
+          <div style="overflow-x: auto">
+            <table class="results-table">
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>Guest Name</th>
+                  <th>Invitation Link</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="resultsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+      let guestData = [];
+
+      function addGuestInput() {
+          const container = document.getElementById('guestInputs');
+          const newInput = document.createElement('div');
+          newInput.className = 'guest-input';
+          newInput.innerHTML = `
+              <input type="text" placeholder="Guest Name" class="guest-name">
+              <button type="button" onclick="removeGuestInput(this)">Remove</button>
+          `;
+          container.appendChild(newInput);
+      }
+
+      function removeGuestInput(button) {
+          const inputs = document.querySelectorAll('.guest-input');
+          if (inputs.length > 1) {
+              button.parentElement.remove();
+          }
+      }
+
+      function generateLinks() {
+          const baseUrl = document.getElementById('baseUrl').value.trim();
+          const paramType = document.getElementById('paramType').value;
+
+          if (!baseUrl) {
+              showNotification('Please enter a base URL', 'error');
+              return;
+          }
+
+          // Get individual inputs
+          const individualGuests = [];
+          document.querySelectorAll('.guest-name').forEach(input => {
+              const name = input.value.trim();
+              if (name) {
+                  individualGuests.push(name);
+              }
+          });
+
+          // Get bulk inputs
+          const bulkGuests = document.getElementById('bulkGuests').value
+              .split('\n')
+              .map(name => name.trim())
+              .filter(name => name);
+
+          // Combine all guests and remove duplicates
+          const allGuests = [...new Set([...individualGuests, ...bulkGuests])];
+
+          if (allGuests.length === 0) {
+              showNotification('Please add at least one guest', 'error');
+              return;
+          }
+
+          // Generate links
+          guestData = allGuests.map((guest, index) => {
+              const encodedName = encodeURIComponent(guest);
+              const link = `${baseUrl}?${paramType}=${encodedName}`;
+              return {
+                  no: index + 1,
+                  name: guest,
+                  link: link,
+                  whatsappMessage: `Hai ${guest}! Kami mengundang Anda ke pernikahan kami. Silakan buka undangan khusus Anda: ${link}`
+              };
+          });
+
+          displayResults();
+          showNotification(`Successfully generated ${guestData.length} invitation links!`, 'success');
+      }
+
+      function displayResults() {
+          const resultsDiv = document.getElementById('results');
+          const resultsBody = document.getElementById('resultsBody');
+
+          // Update stats
+          document.getElementById('totalGuests').textContent = guestData.length;
+          document.getElementById('totalLinks').textContent = guestData.length;
+          document.getElementById('readyToExport').textContent = guestData.length;
+
+          // Clear previous results
+          resultsBody.innerHTML = '';
+
+          // Add new results
+          guestData.forEach(guest => {
+              const row = document.createElement('tr');
+              row.innerHTML = `
+                  <td>${guest.no}</td>
+                  <td><strong>${escapeHtml(guest.name)}</strong></td>
+                  <td class="link-cell">
+                      <a href="${guest.link}" target="_blank" title="${guest.link}">
+                          ${guest.link}
+                      </a>
+                  </td>
+                  <td>
+                      <button class="copy-btn" onclick="copyToClipboard('${guest.link}', this)">Copy Link</button>
+                      <button class="copy-btn" onclick="copyToClipboard(\`${guest.whatsappMessage}\`, this)">Copy WhatsApp</button>
+                  </td>
+              `;
+              resultsBody.appendChild(row);
+          });
+
+          resultsDiv.style.display = 'block';
+      }
+
+      function escapeHtml(text) {
+          const div = document.createElement('div');
+          div.textContent = text;
+          return div.innerHTML;
+      }
+
+      function copyToClipboard(text, button) {
+          if (navigator.clipboard) {
+              navigator.clipboard.writeText(text).then(() => {
+                  showCopyFeedback(button);
+                  showNotification('Copied to clipboard!', 'success');
+              }).catch(err => {
+                  console.error('Failed to copy: ', err);
+                  fallbackCopyTextToClipboard(text);
+              });
+          } else {
+              fallbackCopyTextToClipboard(text);
+          }
+      }
+
+      function fallbackCopyTextToClipboard(text) {
+          const textArea = document.createElement("textarea");
+          textArea.value = text;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-999999px";
+          textArea.style.top = "-999999px";
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          
+          try {
+              document.execCommand('copy');
+              showNotification('Copied to clipboard!', 'success');
+          } catch (err) {
+              console.error('Fallback: Oops, unable to copy', err);
+              showNotification('Failed to copy to clipboard', 'error');
+          }
+          
+          document.body.removeChild(textArea);
+      }
+
+      function showCopyFeedback(button) {
+          const originalText = button.textContent;
+          const originalBg = button.style.backgroundColor;
+          
+          button.textContent = 'Copied!';
+          button.style.backgroundColor = '#28a745';
+          
+          setTimeout(() => {
+              button.textContent = originalText;
+              button.style.backgroundColor = originalBg;
+          }, 1500);
+      }
+
+      function showNotification(message, type = 'success') {
+          const notification = document.getElementById('notification');
+          notification.textContent = message;
+          notification.className = `notification ${type}`;
+          notification.style.display = 'block';
+          notification.style.backgroundColor = type === 'error' ? '#dc3545' : '#28a745';
+          
+          setTimeout(() => {
+              notification.style.display = 'none';
+          }, 3000);
+      }
+
+      function exportToExcel() {
+          if (guestData.length === 0) {
+              showNotification('Please generate links first', 'error');
+              return;
+          }
+
+          try {
+              // Prepare data for Excel
+              const excelData = guestData.map(guest => ({
+                  'No.': guest.no,
+                  'Guest Name': guest.name,
+                  'Invitation Link': guest.link,
+                  'WhatsApp Message': guest.whatsappMessage
+              }));
+
+              // Create workbook
+              const wb = XLSX.utils.book_new();
+              const ws = XLSX.utils.json_to_sheet(excelData);
+
+              // Set column widths
+              const colWidths = [
+                  { wch: 5 },  // No.
+                  { wch: 25 }, // Guest Name
+                  { wch: 60 }, // Invitation Link
+                  { wch: 80 }  // WhatsApp Message
+              ];
+              ws['!cols'] = colWidths;
+
+              // Add worksheet to workbook
+              XLSX.utils.book_append_sheet(wb, ws, 'Wedding Invitations');
+
+              // Create summary sheet
+              const summaryData = [
+                  { 'Statistic': 'Total Guests', 'Value': guestData.length },
+                  { 'Statistic': 'Total Links Generated', 'Value': guestData.length },
+                  { 'Statistic': 'Export Date', 'Value': new Date().toLocaleDateString() },
+                  { 'Statistic': 'Export Time', 'Value': new Date().toLocaleTimeString() },
+                  { 'Statistic': 'Base URL', 'Value': document.getElementById('baseUrl').value },
+                  { 'Statistic': 'Parameter Type', 'Value': document.getElementById('paramType').value }
+              ];
+
+              const summaryWs = XLSX.utils.json_to_sheet(summaryData);
+              summaryWs['!cols'] = [{ wch: 20 }, { wch: 50 }];
+              XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary');
+
+              // Export file
+              const filename = `Wedding_Invitations_${new Date().toISOString().split('T')[0]}.xlsx`;
+              XLSX.writeFile(wb, filename);
+
+              showNotification(`Excel file "${filename}" has been downloaded successfully!`, 'success');
+          } catch (error) {
+              console.error('Export failed:', error);
+              showNotification('Failed to export Excel file. Please try again.', 'error');
+          }
+      }
+
+      function clearAll() {
+          if (confirm('Are you sure you want to clear all data?')) {
+              // Clear individual inputs
+              document.querySelectorAll('.guest-name').forEach(input => {
+                  input.value = '';
+              });
+
+              // Clear bulk input
+              document.getElementById('bulkGuests').value = '';
+
+              // Clear results
+              guestData = [];
+              document.getElementById('results').style.display = 'none';
+
+              // Reset to one input field
+              const container = document.getElementById('guestInputs');
+              container.innerHTML = `
+                  <div class="guest-input">
+                      <input type="text" placeholder="Guest Name" class="guest-name">
+                      <button type="button" onclick="removeGuestInput(this)">Remove</button>
+                  </div>
+              `;
+
+              showNotification('All data cleared successfully!', 'success');
+          }
+      }
+
+      // Add some sample data on page load
+      document.addEventListener('DOMContentLoaded', function() {
+          const sampleGuests = [
+              'John Smith',
+              'Sarah Johnson',
+              'Keluarga Besar Santoso',
+              'Budi Wijaya',
+              'Dr. Ahmad Sukarno'
+          ];
+
+          document.getElementById('bulkGuests').value = sampleGuests.join('\n');
+      });
+    </script>
+  </body>
+</html>
